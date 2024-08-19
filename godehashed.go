@@ -5,17 +5,15 @@ import (
 	"fmt"
 	"godehashed/dhconn"
 	"godehashed/parsedh"
-	"io/ioutil"
+	"os" // Replace ioutil with os
 	"log"
 )
 
 func Importkey(data string) string {
-
-	keydata, err := ioutil.ReadFile(data)
+	// Use os.ReadFile instead of ioutil.ReadFile
+	keydata, err := os.ReadFile(data)
 	if err != nil {
 		log.Fatal("Error reading key: ", err)
-
-		fmt.Println(string(keydata))
 	}
 
 	apikey := string(keydata)
@@ -44,12 +42,11 @@ func main() {
 	flag.Parse()
 
 	if keyname == "" {
-		fmt.Println("You must include a api key to use '-i'")
+		fmt.Println("You must include an API key to use '-i'")
 	} else {
 		apikey := Importkey(keyname)
 		parsedh.SetHeader(outfile)
 		dhconn.DHConn(apikey, email, name, searchterm, uname, outfile, elist, phone)
-
 	}
 
 }
