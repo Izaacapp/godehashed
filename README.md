@@ -14,7 +14,7 @@ You must supply the tool an api key. See apikey_template.txt for example.
 
 To install the tool in CLI run the following command. Your $GOPATH must already be set.
 
-```go get https://github.com/an00byss/godehashed```
+```go get https://github.com/Izaacapp/godehashed```
 
 ## Usage
 ./godehashed -s email -i apikey.txt -e SOMEDOMAIN -o leaks.csv
