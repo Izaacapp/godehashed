@@ -32,10 +32,9 @@ type DHAPI struct {
 func ParseDH(body []byte, outfile string) (int, int) {
 	var jsonAPI DHAPI
 
-	err := json.Unmarshal([]byte(body), &jsonAPI)
-
+	err := json.Unmarshal(body, &jsonAPI)
 	if err != nil {
-		log.Fatal("There was an error unmarshaling body", err)
+		log.Fatalf("There was an error unmarshaling body: %v", err)
 	}
 
 	total := jsonAPI.Total
@@ -44,63 +43,63 @@ func ParseDH(body []byte, outfile string) (int, int) {
 
 	var user []string
 	for _, value := range dhdata {
-		user = append(user, "Database: "+value.DatabaseName+" ", "Username: "+value.Username+" ", "Email: "+value.Email+" ", "Password: "+value.Password+" ", "Hash: "+value.HashedPassword+" ", "Phone: "+value.Phone+" ", "Name: "+value.Name+" ", "Address: "+value.Address+" ", "\n")
+		user = append(user, fmt.Sprintf("Database: %s Username: %s Email: %s Password: %s Hash: %s Phone: %s Name: %s Address: %s\n",
+			value.DatabaseName, value.Username, value.Email, value.Password, value.HashedPassword, value.Phone, value.Name, value.Address))
 	}
 
-	// If outfile is not empty will export data to outfile.
+	// If outfile is not empty, will export data to outfile.
 	if outfile != "" {
 		csvFile, err := os.OpenFile(outfile, os.O_APPEND|os.O_WRONLY, 0600)
 		if err != nil {
-			panic(err)
+			log.Fatalf("Error opening file: %v", err)
 		}
-
 		defer csvFile.Close()
 
 		writer := csv.NewWriter(csvFile)
+		defer writer.Flush()
 
 		for _, entry := range jsonAPI.Entries {
-			var row []string
-			row = append(row, entry.DatabaseName)
-			row = append(row, entry.Username)
-			row = append(row, entry.Email)
-			row = append(row, entry.Password)
-			row = append(row, entry.HashedPassword)
-			row = append(row, entry.Name)
-			row = append(row, entry.Address)
-			row = append(row, entry.Phone)
-			writer.Write(row)
+			row := []string{
+				entry.DatabaseName,
+				entry.Username,
+				entry.Email,
+				entry.Password,
+				entry.HashedPassword,
+				entry.Name,
+				entry.Address,
+				entry.Phone,
+			}
+			if err := writer.Write(row); err != nil {
+				log.Fatalf("Error writing to CSV: %v", err)
+			}
 		}
-		writer.Flush()
 	}
 
-	// By default will be displayed to console
-	for x := 0; x < len(user); x++ {
-		if user[x] == "" {
-			continue
+	// By default, output will be displayed to console
+	for _, u := range user {
+		if u != "" {
+			fmt.Println(u)
 		}
-		fmt.Println(user[x])
 	}
 
-	//fmt.Println("[*] Total leaks found: ", total)
 	fmt.Println("[*] Your API balance remaining:", strconv.Itoa(balance))
-
 	return total, balance
 }
 
 func SetHeader(outfile string) {
-
 	if outfile != "" {
 		csvFile, err := os.OpenFile(outfile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
-			panic(err)
+			log.Fatalf("Error opening file: %v", err)
 		}
-
 		defer csvFile.Close()
 
 		writer := csv.NewWriter(csvFile)
+		defer writer.Flush()
 
 		header := []string{"Database Name", "Username", "Email", "Password", "Hashed Password", "Name", "Address", "Phone"}
-		writer.Write(header)
-		writer.Flush()
+		if err := writer.Write(header); err != nil {
+			log.Fatalf("Error writing header to CSV: %v", err)
+		}
 	}
 }
