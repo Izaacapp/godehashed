@@ -1,3 +1,3 @@
 module godehashed
 
-go 1.14
+go 1.16
